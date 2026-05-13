@@ -1,0 +1,22 @@
+{
+  "name": "aws-security-platform-all-phases",
+  "version": "1.0.0",
+  "private": true,
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "react-scripts": "5.0.1"
+  },
+  "devDependencies": {
+    "cross-env": "^7.0.3"
+  },
+  "scripts": {
+    "start": "cross-env PORT=3015 react-scripts start",
+    "build": "react-scripts build"
+  },
+  "proxy": "http://localhost:5015",
+  "browserslist": {
+    "production": [">0.2%", "not dead", "not op_mini all"],
+    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+  }
+}

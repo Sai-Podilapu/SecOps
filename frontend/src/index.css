@@ -1,0 +1,98 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+/* ── Dark Mode (default) ───────────────────────────────────────────────────── */
+:root {
+  --bg:            #080b10;
+  --surface:       #0d1117;
+  --surface-2:     #121820;
+  --surface-3:     #1a2232;
+  --border:        #1e2d42;
+  --border-strong: #2a3d57;
+  --text-1:        #e2eaf5;
+  --text-2:        #8899b4;
+  --text-3:        #4a5d7a;
+  --accent:        #3b82f6;
+  --accent-dim:    #0f2040;
+  --accent-hover:  #60a5fa;
+  --green:         #22d3a0;
+  --green-dim:     #042420;
+  --green-b:       #0a4030;
+  --yellow:        #f59e0b;
+  --yellow-dim:    #271a02;
+  --yellow-b:      #4a3510;
+  --orange:        #fb923c;
+  --orange-dim:    #200f02;
+  --orange-b:      #7c2d12;
+  --red:           #f43f5e;
+  --red-dim:       #200510;
+  --red-b:         #7f1d36;
+  --purple:        #a78bfa;
+  --purple-dim:    #1e1040;
+  --purple-b:      #4c1d95;
+  --cyan:          #22d3ee;
+  --cyan-dim:      #042434;
+  --cyan-b:        #0e7490;
+  --font-sans:     'DM Sans', system-ui, sans-serif;
+  --font-mono:     'IBM Plex Mono', monospace;
+  --radius:        8px;
+  --radius-sm:     5px;
+  --border-s:      var(--border-strong);
+}
+
+/* ── Light Mode ────────────────────────────────────────────────────────────── */
+.light {
+  --bg:            #f0f4f8;
+  --surface:       #ffffff;
+  --surface-2:     #f5f8fc;
+  --surface-3:     #e8eef5;
+  --border:        #d0dae8;
+  --border-strong: #b8c8dc;
+  --text-1:        #0f1923;
+  --text-2:        #4a5d78;
+  --text-3:        #8a9ab5;
+  --accent:        #2563eb;
+  --accent-dim:    #dbeafe;
+  --accent-hover:  #1d4ed8;
+  --green:         #059669;
+  --green-dim:     #d1fae5;
+  --green-b:       #a7f3d0;
+  --yellow:        #d97706;
+  --yellow-dim:    #fef3c7;
+  --yellow-b:      #fde68a;
+  --orange:        #ea580c;
+  --orange-dim:    #ffedd5;
+  --orange-b:      #fed7aa;
+  --red:           #e11d48;
+  --red-dim:       #ffe4e6;
+  --red-b:         #fecdd3;
+  --purple:        #7c3aed;
+  --purple-dim:    #ede9fe;
+  --purple-b:      #c4b5fd;
+  --cyan:          #0891b2;
+  --cyan-dim:      #cffafe;
+  --cyan-b:        #a5f3fc;
+  --border-s:      var(--border-strong);
+}
+
+html { font-size: 14px; }
+body {
+  font-family: var(--font-sans);
+  background: var(--bg);
+  color: var(--text-1);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  transition: background 0.2s, color 0.2s;
+}
+
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+
+@keyframes spin    { to { transform: rotate(360deg); } }
+@keyframes fadeIn  { from { opacity:0; transform:translateY(6px); } to { opacity:1; transform:translateY(0); } }
+@keyframes pulse   { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+
+select { appearance: none; }
+button:focus { outline: none; }
