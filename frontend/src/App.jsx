@@ -2290,7 +2290,7 @@ const MODULES = [
 export default function App() {
   const [activeModule, setActiveModule] = useState("discovery");
   const [savedCreds, setSavedCreds]     = useState(null);
-  const [darkMode, setDarkMode]         = useState(true);
+  const [darkMode, setDarkMode]         = useState(false);
   const [moduleState, setModuleState]   = useState({
     discovery:   { data:null, loading:false, error:null, meta:null },
     compliance:  { data:null, loading:false, error:null, meta:null },
@@ -2383,7 +2383,7 @@ export default function App() {
   const autoState = moduleState.auto;
 
   // Theme class
-  const themeClass = darkMode ? "" : "light";
+  const themeClass = darkMode ? "dark" : "light";
 
   const scanningLabel = {
     discovery:   { title:"Discovering AWS Resources",     color:"var(--accent)",  step:"Querying AWS Config across all regions…" },
@@ -2403,7 +2403,7 @@ export default function App() {
             <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><rect x="2" y="2" width="14" height="14" rx="3" stroke="#3b82f6" strokeWidth="1.5"/><path d="M5 9h8M9 5v8" stroke="#3b82f6" strokeWidth="1.5" strokeLinecap="round"/></svg>
           </div>
           <div>
-            <div style={{ fontSize:13, fontWeight:700, letterSpacing:"-0.02em" }}>AWS Security Platform</div>
+            <div style={{ fontSize:13, fontWeight:700, letterSpacing:"-0.02em" }}>Cloud Security Platform</div>
             <div style={{ fontSize:10, color:"var(--text-3)", letterSpacing:"0.05em" }}>UNIFIED CLOUD SECURITY · ALL 5 PHASES</div>
           </div>
         </div>

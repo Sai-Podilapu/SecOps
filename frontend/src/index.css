@@ -1,88 +1,90 @@
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400;500;600&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-/* ── Dark Mode (default) ───────────────────────────────────────────────────── */
+/* ── Light Mode (default) ───────────────────────────────────────────────────── */
 :root {
-  --bg:            #080b10;
-  --surface:       #0d1117;
-  --surface-2:     #121820;
-  --surface-3:     #1a2232;
-  --border:        #1e2d42;
-  --border-strong: #2a3d57;
-  --text-1:        #e2eaf5;
-  --text-2:        #8899b4;
-  --text-3:        #4a5d7a;
-  --accent:        #3b82f6;
-  --accent-dim:    #0f2040;
-  --accent-hover:  #60a5fa;
-  --green:         #22d3a0;
-  --green-dim:     #042420;
-  --green-b:       #0a4030;
-  --yellow:        #f59e0b;
-  --yellow-dim:    #271a02;
-  --yellow-b:      #4a3510;
-  --orange:        #fb923c;
-  --orange-dim:    #200f02;
-  --orange-b:      #7c2d12;
-  --red:           #f43f5e;
-  --red-dim:       #200510;
-  --red-b:         #7f1d36;
-  --purple:        #a78bfa;
-  --purple-dim:    #1e1040;
-  --purple-b:      #4c1d95;
-  --cyan:          #22d3ee;
-  --cyan-dim:      #042434;
-  --cyan-b:        #0e7490;
-  --font-sans:     'DM Sans', system-ui, sans-serif;
-  --font-mono:     'IBM Plex Mono', monospace;
+  --bg:            #e8ecf1;
+  --surface:       #f0f3f7;
+  --surface-2:     #eaedf3;
+  --surface-3:     #e2e6ed;
+  --border:        #d0d8e4;
+  --border-strong: #b6c2d3;
+  --text-1:        #0a0f1a;
+  --text-2:        #1f2937;
+  --text-3:        #4b5563;
+  --accent:        #2563eb;
+  --accent-dim:    #dbeafe;
+  --accent-hover:  #1d4ed8;
+  --green:         #15803d;
+  --green-dim:     #dcfce7;
+  --green-b:       #86efac;
+  --yellow:        #b45309;
+  --yellow-dim:    #fef9c3;
+  --yellow-b:      #fde047;
+  --orange:        #c2410c;
+  --orange-dim:    #ffedd5;
+  --orange-b:      #fdba74;
+  --red:           #b91c1c;
+  --red-dim:       #fee2e2;
+  --red-b:         #fca5a5;
+  --purple:        #6d28d9;
+  --purple-dim:    #ede9fe;
+  --purple-b:      #c4b5fd;
+  --cyan:          #0e7490;
+  --cyan-dim:      #cffafe;
+  --cyan-b:        #67e8f9;
+  --font-sans:     'Geist', 'Inter', system-ui, sans-serif;
+  --font-mono:     'Geist Mono', 'IBM Plex Mono', monospace;
   --radius:        8px;
   --radius-sm:     5px;
   --border-s:      var(--border-strong);
 }
 
-/* ── Light Mode ────────────────────────────────────────────────────────────── */
-.light {
-  --bg:            #f0f4f8;
-  --surface:       #ffffff;
-  --surface-2:     #f5f8fc;
-  --surface-3:     #e8eef5;
-  --border:        #d0dae8;
-  --border-strong: #b8c8dc;
-  --text-1:        #0f1923;
-  --text-2:        #4a5d78;
-  --text-3:        #8a9ab5;
-  --accent:        #2563eb;
-  --accent-dim:    #dbeafe;
-  --accent-hover:  #1d4ed8;
-  --green:         #059669;
-  --green-dim:     #d1fae5;
-  --green-b:       #a7f3d0;
-  --yellow:        #d97706;
-  --yellow-dim:    #fef3c7;
-  --yellow-b:      #fde68a;
-  --orange:        #ea580c;
-  --orange-dim:    #ffedd5;
-  --orange-b:      #fed7aa;
-  --red:           #e11d48;
-  --red-dim:       #ffe4e6;
-  --red-b:         #fecdd3;
-  --purple:        #7c3aed;
-  --purple-dim:    #ede9fe;
-  --purple-b:      #c4b5fd;
-  --cyan:          #0891b2;
-  --cyan-dim:      #cffafe;
-  --cyan-b:        #a5f3fc;
-  --border-s:      var(--border-strong);
+/* ── Dark Mode ─────────────────────────────────────────────────────────────── */
+.dark {
+  --bg:           #0b0e14;
+  --surface:      #131720;
+  --surface-2:    #191d28;
+  --surface-3:    #1f2433;
+  --border:       #252a38;
+  --border-s:     #303650;
+  --text-1:       #e2e8f0;
+  --text-2:       #8892a4;
+  --text-3:       #4f5a72;
+  --accent:       #3b82f6;
+  --accent-dim:   #1e3a5f;
+  --green:        #22c55e;
+  --green-dim:    #0d2d1a;
+  --green-border: #166534;
+  --red:          #ef4444;
+  --red-dim:      #2d0f0f;
+  --red-border:   #7f1d1d;
+  --yellow:       #f59e0b;
+  --yellow-dim:   #2d1f05;
+  --yellow-border:#78350f;
+  --orange:       #f97316;
+  --orange-dim:   #2d1505;
+  --purple:       #a855f7;
+  --purple-dim:   #2d1050;
+  --font-sans:    'Geist', system-ui, sans-serif;
+  --font-mono:    'Geist Mono', monospace;
+  --radius:       8px;
+  --radius-sm:    5px;
 }
 
-html { font-size: 14px; }
+html { font-size: 16px; }
 body {
   font-family: var(--font-sans);
   background: var(--bg);
   color: var(--text-1);
-  line-height: 1.5;
+  font-weight: 475;
+  line-height: 1.65;
+  letter-spacing: -0.01em;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
   transition: background 0.2s, color 0.2s;
 }
 
