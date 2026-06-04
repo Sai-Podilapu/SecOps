@@ -1,0 +1,243 @@
+<div class="fade-in" style="display:flex;min-height:calc(100vh - 108px)">
+  <aside style="width:210px;border-right:1px solid var(--border);background:var(--surface);padding:16px 0;position:sticky;top:108px;height:calc(100vh - 108px);overflow-y:auto;flex-shrink:0">
+    <div style="padding:0 16px 14px;border-bottom:1px solid var(--border);margin-bottom:8px">
+      <div *ngFor="let item of [['Account',data?.identity?.account_id],['Region',data?.region],['Overall',data?.score?.overall+'% ('+data?.score?.grade+')']]" style="margin-bottom:5px">
+        <div style="font-size:10px;color:var(--text-3)">{{item[0]}}</div>
+        <div class="mono" style="font-size:11px;font-weight:500">{{item[1]||'—'}}</div>
+      </div>
+    </div>
+    <button *ngFor="let tab of nav" (click)="activeTab=tab.id"
+      [style.border-left]="activeTab===tab.id?'2px solid var(--red)':'2px solid transparent'"
+      [style.background]="activeTab===tab.id?'rgba(239,68,68,0.1)':'none'"
+      [style.color]="activeTab===tab.id?'var(--red)':'var(--text-2)'"
+      style="display:flex;align-items:center;justify-content:space-between;width:100%;padding:7px 16px;border:none;cursor:pointer;font-size:13px;text-align:left">
+      <span style="display:flex;align-items:center;gap:8px"><span style="font-size:12px;opacity:0.7">{{tab.icon}}</span>{{tab.label}}</span>
+      <span *ngIf="tabScore(tab.id)!=null" [style.color]="scoreColor(tabScore(tab.id))" class="mono" style="font-size:11px;font-weight:600">
+        {{tabScore(tab.id)}}%
+      </span>
+    </button>
+  </aside>
+
+  <main style="flex:1;min-width:0;padding:24px 28px;overflow-x:hidden">
+
+    <!-- Overview -->
+    <div *ngIf="activeTab==='overview'" class="fade-in" style="display:flex;flex-direction:column;gap:24px">
+      <div>
+        <h2 style="font-size:16px;font-weight:700;margin-bottom:4px">Compliance Overview</h2>
+        <p style="font-size:12px;color:var(--text-2)">{{meta?.timestamp}} · {{data?.region}} · {{data?.scan_time}}</p>
+      </div>
+      <div style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
+        <div class="card" style="padding:24px 32px;display:flex;flex-direction:column;align-items:center;gap:12px">
+          <svg [attr.width]="120" [attr.height]="120" viewBox="0 0 120 120">
+            <circle cx="60" cy="60" r="52" fill="none" stroke="var(--surface-3)" stroke-width="6"/>
+            <circle cx="60" cy="60" r="52" fill="none" [attr.stroke]="scoreColor(data?.score?.overall)" stroke-width="6"
+              [attr.stroke-dasharray]="((data?.score?.overall||0)/100*2*3.14159*52)+' '+(2*3.14159*52)"
+              stroke-linecap="round" transform="rotate(-90 60 60)"/>
+            <text x="60" y="56" text-anchor="middle" dominant-baseline="middle" [attr.fill]="scoreColor(data?.score?.overall)" font-size="18" font-weight="700" font-family="IBM Plex Mono,monospace">{{data?.score?.overall||0}}%</text>
+            <text x="60" y="74" text-anchor="middle" [attr.fill]="scoreColor(data?.score?.overall)" font-size="13" font-family="DM Sans,sans-serif">{{data?.score?.grade||'—'}}</text>
+          </svg>
+          <div style="font-size:11px;color:var(--text-2);text-align:center">Overall Compliance</div>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of sections" style="background:var(--surface);padding:16px 14px">
+            <div [style.color]="scoreColor(data?.[s.key]?.score)" style="font-size:18px;font-family:var(--font-mono);font-weight:700;margin-bottom:4px">
+              {{data?.[s.key]?.score!=null?(data?.[s.key]?.score+'%'):'N/A'}}
+            </div>
+            <div style="font-size:11px;color:var(--text-2)">{{s.label}}</div>
+          </div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <div *ngFor="let s of [
+          {l:'Critical',v:data?.summary?.critical_findings,c:'var(--red)'},
+          {l:'High',v:data?.summary?.high_findings,c:'var(--orange)'},
+          {l:'Medium',v:data?.summary?.medium_findings,c:'var(--yellow)'},
+          {l:'Passed',v:data?.summary?.passed_checks,c:'var(--green)'},
+          {l:'Failed',v:data?.summary?.failed_checks,c:'var(--red)'},
+          {l:'Total',v:data?.summary?.total_checks,a:true}
+        ]" style="background:var(--surface);padding:14px 16px">
+          <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:20px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Config Rules -->
+    <div *ngIf="activeTab==='config'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">Config Rules</h2>
+      <div *ngIf="!data?.config_rules" class="empty">No Config Rules data.</div>
+      <ng-container *ngIf="data?.config_rules">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Score',v:data?.config_rules?.score+'%',a:true},
+            {l:'Total Rules',v:data?.config_rules?.total_rules},
+            {l:'Compliant',v:data?.config_rules?.compliant_count,c:'var(--green)'},
+            {l:'Non-Compliant',v:data?.config_rules?.non_compliant_count,c:'var(--red)'},
+            {l:'Not Applicable',v:data?.config_rules?.not_applicable_count},
+            {l:'Insufficient Data',v:data?.config_rules?.insufficient_data_count}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div *ngIf="data?.config_rules?.rules?.length" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div style="overflow-x:auto;max-height:calc(100vh - 340px);overflow-y:auto">
+            <table>
+              <thead><tr><th>Status</th><th>Rule Name</th><th>Severity</th><th>Scope</th><th>Trigger</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let r of data?.config_rules?.rules?.slice(0,200)">
+                  <td><span class="badge badge-sm" [ngClass]="r.compliance==='COMPLIANT'?'badge-green':r.compliance==='NON_COMPLIANT'?'badge-red':'badge-neutral'">{{r.compliance}}</span></td>
+                  <td style="max-width:280px"><span class="mono" style="font-size:11px">{{r.name}}</span></td>
+                  <td><span class="badge badge-sm" [ngClass]="r.severity==='CRITICAL'?'badge-red':r.severity==='HIGH'?'badge-orange':r.severity==='MEDIUM'?'badge-yellow':'badge-neutral'">{{r.severity}}</span></td>
+                  <td style="font-size:11px;color:var(--text-2)">{{r.scope}}</td>
+                  <td style="font-size:11px;color:var(--text-3)">{{r.trigger}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <!-- Conformance Packs -->
+        <div *ngIf="data?.config_rules?.conformance_packs?.length">
+          <h3 style="font-size:14px;font-weight:600;margin-bottom:10px">Conformance Packs</h3>
+          <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px">
+            <div *ngFor="let p of data?.config_rules?.conformance_packs" class="card" style="padding:14px">
+              <div style="font-size:12px;font-weight:600;margin-bottom:6px">{{p.name}}</div>
+              <div style="display:flex;justify-content:space-between;align-items:center">
+                <span class="badge badge-sm" [ngClass]="p.status==='ACTIVE'?'badge-green':'badge-neutral'">{{p.status}}</span>
+                <span *ngIf="p.score!=null" [style.color]="scoreColor(p.score)" class="mono" style="font-size:12px;font-weight:700">{{p.score}}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Security Hub -->
+    <div *ngIf="activeTab==='hub'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">Security Hub</h2>
+      <div *ngIf="!data?.security_hub" class="empty">No Security Hub data.</div>
+      <ng-container *ngIf="data?.security_hub">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Score',v:data?.security_hub?.score+'%',a:true},
+            {l:'Critical',v:data?.security_hub?.severity_counts?.CRITICAL,c:'var(--red)'},
+            {l:'High',v:data?.security_hub?.severity_counts?.HIGH,c:'var(--orange)'},
+            {l:'Medium',v:data?.security_hub?.severity_counts?.MEDIUM,c:'var(--yellow)'},
+            {l:'Total',v:data?.security_hub?.total_findings}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div *ngIf="data?.security_hub?.findings?.length" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div style="overflow-x:auto;max-height:calc(100vh - 340px);overflow-y:auto">
+            <table>
+              <thead><tr><th>Severity</th><th>Title</th><th>Status</th><th>Resource Type</th><th>Resource ID</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let f of data?.security_hub?.findings?.slice(0,200)">
+                  <td><span [class]="checkStatusClass(f.severity)" class="badge badge-sm">{{f.severity}}</span></td>
+                  <td style="max-width:280px">{{f.title}}</td>
+                  <td><span class="badge badge-sm" [ngClass]="checkStatusClass(f.workflow_status||f.status)">{{f.workflow_status||f.status||'—'}}</span></td>
+                  <td style="font-size:11px;color:var(--text-2)">{{f.resource_type||'—'}}</td>
+                  <td><span class="mono" style="font-size:10px">{{f.resource_id?.slice(-30)||'—'}}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div *ngIf="!data?.security_hub?.findings?.length" class="empty">No Security Hub findings.</div>
+      </ng-container>
+    </div>
+
+    <!-- IAM -->
+    <div *ngIf="activeTab==='iam'" class="fade-in" style="display:flex;flex-direction:column;gap:20px">
+      <h2 style="font-size:16px;font-weight:700">IAM Compliance</h2>
+      <div *ngIf="!data?.iam_compliance" class="empty">No IAM data.</div>
+      <div *ngIf="data?.iam_compliance" style="display:flex;flex-direction:column;gap:12px">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Score',v:data?.iam_compliance?.score+'%',a:true},
+            {l:'Root MFA',v:data?.iam_compliance?.root_mfa_enabled?'✓ On':'✗ Off'},
+            {l:'Users',v:data?.iam_compliance?.total_users},
+            {l:'No MFA',v:data?.iam_compliance?.users_without_mfa,c:'var(--red)'},
+            {l:'Old Keys',v:data?.iam_compliance?.users_with_old_keys,c:'var(--orange)'}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div class="card" style="overflow:hidden">
+          <div *ngFor="let c of data?.iam_compliance?.checks; let i=index; let last=last"
+            style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px"
+            [style.border-bottom]="!last?'1px solid var(--border)':'none'"
+            [style.background]="i%2===0?'var(--surface)':'var(--surface-2)'">
+            <span [style.color]="c.status==='PASS'?'var(--green)':'var(--red)'" style="font-size:14px;flex-shrink:0;margin-top:1px">{{c.status==='PASS'?'✓':'✗'}}</span>
+            <div style="flex:1">
+              <div style="font-size:12px;font-weight:500;margin-bottom:2px">{{c.name}}</div>
+              <div style="font-size:11px;color:var(--text-2)">{{c.detail}}</div>
+            </div>
+            <span class="badge badge-sm" [ngClass]="c.severity==='CRITICAL'?'badge-red':c.severity==='HIGH'?'badge-orange':c.severity==='MEDIUM'?'badge-yellow':'badge-neutral'">{{c.severity}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CloudTrail -->
+    <div *ngIf="activeTab==='trail'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">CloudTrail</h2>
+      <div *ngIf="!data?.cloudtrail" class="empty">No CloudTrail data.</div>
+      <ng-container *ngIf="data?.cloudtrail">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Score',v:data?.cloudtrail?.score+'%',a:true},
+            {l:'Trails',v:data?.cloudtrail?.total_trails},
+            {l:'Logging',v:data?.cloudtrail?.logging_trails,c:'var(--green)'},
+            {l:'Multi-Region',v:data?.cloudtrail?.multi_region_trails},
+            {l:'Encrypted',v:data?.cloudtrail?.encrypted_trails}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div *ngIf="data?.cloudtrail?.checks?.length" class="card" style="overflow:hidden">
+          <div *ngFor="let c of data?.cloudtrail?.checks; let i=index; let last=last"
+            style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px"
+            [style.border-bottom]="!last?'1px solid var(--border)':'none'">
+            <span [style.color]="c.status==='PASS'?'var(--green)':'var(--red)'" style="font-size:14px;flex-shrink:0">{{c.status==='PASS'?'✓':'✗'}}</span>
+            <div style="flex:1"><div style="font-size:12px;font-weight:500">{{c.name}}</div><div style="font-size:11px;color:var(--text-2)">{{c.detail}}</div></div>
+            <span class="badge badge-sm" [ngClass]="c.severity==='CRITICAL'?'badge-red':c.severity==='HIGH'?'badge-orange':'badge-yellow'">{{c.severity}}</span>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- GuardDuty -->
+    <div *ngIf="activeTab==='guardduty'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">GuardDuty</h2>
+      <div *ngIf="!data?.guardduty" class="empty">No GuardDuty data.</div>
+      <ng-container *ngIf="data?.guardduty">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Score',v:data?.guardduty?.score+'%',a:true},
+            {l:'Detectors',v:data?.guardduty?.detectors?.length},
+            {l:'High Findings',v:data?.guardduty?.high_findings,c:'var(--red)'},
+            {l:'Medium',v:data?.guardduty?.medium_findings,c:'var(--orange)'}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div *ngIf="data?.guardduty?.checks?.length" class="card" style="overflow:hidden">
+          <div *ngFor="let c of data?.guardduty?.checks; let last=last"
+            style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px"
+            [style.border-bottom]="!last?'1px solid var(--border)':'none'">
+            <span [style.color]="c.status==='PASS'?'var(--green)':'var(--red)'" style="font-size:14px;flex-shrink:0">{{c.status==='PASS'?'✓':'✗'}}</span>
+            <div style="flex:1"><div style="font-size:12px;font-weight:500">{{c.name}}</div><div style="font-size:11px;color:var(--text-2)">{{c.detail}}</div></div>
+          </div>
+        </div>
+        <div *ngIf="!data?.guardduty?.checks?.length && !data?.guardduty?.high_findings" class="empty">No GuardDuty details available.</div>
+      </ng-container>
+    </div>
+
+  </main>
+</div>

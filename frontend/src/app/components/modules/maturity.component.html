@@ -1,0 +1,101 @@
+<div class="fade-in" style="padding:20px 24px;max-width:1600px;margin:0 auto;width:100%">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+    <div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">SecOps Maturity Assessment</h2>
+      <div style="font-size:12px;color:var(--text-3)">Account: <span class="mono">{{data?.identity?.account_id||'—'}}</span></div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:8px">
+      <div style="width:100px;height:100px;position:relative">
+        <svg viewBox="0 0 100 100" style="transform:rotate(-90deg)">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-3)" stroke-width="8"/>
+          <circle cx="50" cy="50" r="42" fill="none" [attr.stroke]="overallColor" stroke-width="8"
+            [attr.stroke-dasharray]="dashArray+' '+circumference" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <span [style.color]="overallColor" style="font-size:22px;font-weight:800;font-family:var(--font-mono);line-height:1">{{data?.overall_score||0}}</span>
+          <span style="font-size:9px;color:var(--text-3);text-transform:uppercase">Overall</span>
+        </div>
+      </div>
+      <div style="text-align:center">
+        <div [style.color]="overallColor" style="font-size:13px;font-weight:700">Level {{data?.overall_level}} — {{data?.overall_label}}</div>
+        <div style="font-size:11px;color:var(--text-3)">{{data?.total_passed||0}}/{{data?.total_checks||0}} checks passed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Maturity scale -->
+  <div class="card" style="padding:12px 18px;margin-bottom:16px;display:flex;align-items:center;gap:6px;flex-wrap:wrap">
+    <span style="font-size:11px;color:var(--text-3);margin-right:8px">Maturity Scale:</span>
+    <div *ngFor="let l of levels"
+      [style.background]="data?.overall_level===l?(overallColor+'22'):'var(--surface-2)'"
+      [style.border]="'1px solid '+(data?.overall_level===l?overallColor:'var(--border)')"
+      [style.font-weight]="data?.overall_level===l?'700':'400'"
+      style="display:flex;align-items:center;gap:4px;padding:3px 10px;border-radius:12px;font-size:11px">
+      <span [style.color]="data?.overall_level===l?overallColor:'var(--text-3)'">L{{l}}</span>
+      <span [style.color]="data?.overall_level===l?overallColor:'var(--text-2)'">{{levelLabels[l]}}</span>
+    </div>
+  </div>
+
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+    <!-- Domain cards -->
+    <div>
+      <div class="section-title">Domain Assessment</div>
+      <ng-container *ngFor="let k of domainOrder">
+        <div *ngIf="data?.domains?.[k]" class="card" style="margin-bottom:8px">
+          <div (click)="toggle(k)" style="padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
+            <div [style.border]="'3px solid '+color(data.domains[k])"
+              [style.background]="color(data.domains[k])+'12'"
+              style="width:52px;height:52px;border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;flex-shrink:0">
+              <div [style.color]="color(data.domains[k])" style="font-size:16px;font-weight:800;font-family:var(--font-mono);line-height:1">{{data.domains[k].level}}</div>
+              <div [style.color]="color(data.domains[k])" style="font-size:8px;text-transform:uppercase;opacity:0.8;letter-spacing:0.05em">LVL</div>
+            </div>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;margin-bottom:4px">{{data.domains[k].label}}</div>
+              <div style="display:flex;align-items:center;gap:8px">
+                <div style="flex:1;height:4px;background:var(--surface-3);border-radius:2px;overflow:hidden">
+                  <div [style.width]="data.domains[k].score+'%'" [style.background]="color(data.domains[k])" style="height:100%;border-radius:2px;transition:width 0.5s"></div>
+                </div>
+                <span [style.color]="color(data.domains[k])" class="mono" style="font-size:11px;min-width:36px;text-align:right">{{data.domains[k].score}}%</span>
+              </div>
+              <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--text-3)">
+                <span style="color:var(--green)">✓ {{data.domains[k].passed||0}} passed</span>
+                <span *ngIf="(data.domains[k].total||0)-(data.domains[k].passed||0)>0" style="color:var(--red)">✗ {{(data.domains[k].total||0)-(data.domains[k].passed||0)}} failed</span>
+                <span [style.color]="color(data.domains[k])" style="font-weight:600">{{data.domains[k].label_level}}</span>
+              </div>
+            </div>
+            <span style="color:var(--text-3);font-size:12px">{{expanded[k]?'▲':'▼'}}</span>
+          </div>
+          <div *ngIf="expanded[k] && data.domains[k].checks?.length" style="border-top:1px solid var(--border);padding:12px 18px">
+            <div *ngFor="let c of data.domains[k].checks; let last=last"
+              style="display:flex;align-items:center;gap:10px;padding:6px 0"
+              [style.border-bottom]="!last?'1px solid var(--border)':'none'">
+              <span [style.color]="c.pass?'var(--green)':'var(--red)'" style="font-size:14px;flex-shrink:0">{{c.pass?'✓':'✗'}}</span>
+              <span style="flex:1;font-size:12px">{{c.title}}</span>
+              <span *ngIf="c.detail" style="font-size:10px;color:var(--text-3);font-family:var(--font-mono)">{{c.detail}}</span>
+              <span class="badge badge-sm" [ngClass]="badgeClass(c.severity)">{{c.severity}}</span>
+            </div>
+          </div>
+        </div>
+      </ng-container>
+    </div>
+
+    <!-- Recommendations -->
+    <div>
+      <div class="section-title">Top Recommendations ({{data?.recommendations?.length||0}})</div>
+      <div *ngIf="!data?.recommendations?.length" class="empty">All checks passed!</div>
+      <div *ngIf="data?.recommendations?.length" class="card maturity-recos" style="overflow-y:auto;max-height:520px">
+        <div *ngFor="let r of data.recommendations; let last=last"
+          style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px"
+          [style.border-bottom]="!last?'1px solid var(--border)':'none'">
+          <span style="font-size:13px;color:var(--red);flex-shrink:0">✗</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:500;margin-bottom:2px">{{r.title}}</div>
+            <div style="font-size:11px;color:var(--text-3)">{{r.domain}}</div>
+            <div *ngIf="r.detail" style="font-size:10px;color:var(--text-3);font-family:var(--font-mono);margin-top:2px">{{r.detail}}</div>
+          </div>
+          <span class="badge badge-sm" [ngClass]="badgeClass(r.severity)">{{r.severity}}</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,203 @@
+<div class="fade-in" style="display:flex;min-height:calc(100vh - 108px)">
+  <aside style="width:210px;border-right:1px solid var(--border);background:var(--surface);padding:16px 0;position:sticky;top:108px;height:calc(100vh - 108px);overflow-y:auto;flex-shrink:0">
+    <div style="padding:0 16px 14px;border-bottom:1px solid var(--border);margin-bottom:8px">
+      <div *ngFor="let item of [['Account',data?.identity?.account_id],['Region',data?.region],['Risk Level',data?.risk_score?.level]]" style="margin-bottom:5px">
+        <div style="font-size:10px;color:var(--text-3)">{{item[0]}}</div>
+        <div class="mono" style="font-size:11px;font-weight:500">{{item[1]||'—'}}</div>
+      </div>
+    </div>
+    <button *ngFor="let tab of nav" (click)="activeTab=tab.id"
+      [style.border-left]="activeTab===tab.id?'2px solid var(--orange)':'2px solid transparent'"
+      [style.background]="activeTab===tab.id?'rgba(249,115,22,0.1)':'none'"
+      [style.color]="activeTab===tab.id?'var(--orange)':'var(--text-2)'"
+      style="display:flex;align-items:center;gap:8px;width:100%;padding:7px 16px;border:none;cursor:pointer;font-size:13px;text-align:left">
+      <span style="opacity:0.7">{{tab.icon}}</span>{{tab.label}}
+    </button>
+  </aside>
+  <main style="flex:1;min-width:0;padding:24px 28px;overflow-x:hidden">
+
+    <!-- Overview -->
+    <div *ngIf="activeTab==='overview'" class="fade-in" style="display:flex;flex-direction:column;gap:24px">
+      <h2 style="font-size:16px;font-weight:700">Risk Dashboard</h2>
+      <div style="display:flex;gap:20px;align-items:flex-start;flex-wrap:wrap">
+        <div class="card" style="padding:24px;display:flex;flex-direction:column;align-items:center;gap:12px">
+          <div style="position:relative;width:120px;height:120px">
+            <svg width="120" height="120" viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="46" fill="none" stroke="var(--surface-3)" stroke-width="8"/>
+              <circle cx="60" cy="60" r="46" fill="none" [attr.stroke]="riskColor(data?.risk_score?.level)" stroke-width="8"
+                [attr.stroke-dasharray]="((data?.risk_score?.score||0)/100*2*3.14159*46)+' '+(2*3.14159*46)"
+                stroke-linecap="round" transform="rotate(-90 60 60)" style="filter:drop-shadow(0 0 8px currentColor)"/>
+              <text x="60" y="54" text-anchor="middle" dominant-baseline="middle" [attr.fill]="riskColor(data?.risk_score?.level)" font-size="18" font-weight="700" font-family="IBM Plex Mono,monospace">{{data?.risk_score?.score||0}}%</text>
+              <text x="60" y="72" text-anchor="middle" [attr.fill]="riskColor(data?.risk_score?.level)" font-size="11" font-family="DM Sans,sans-serif">{{data?.risk_score?.level||'—'}}</text>
+            </svg>
+          </div>
+          <span style="font-size:11px;color:var(--text-2)">Overall Risk Score</span>
+        </div>
+        <div style="flex:1;display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Critical',v:data?.summary?.severity_counts?.CRITICAL,c:'var(--red)'},
+            {l:'High',v:data?.summary?.severity_counts?.HIGH,c:'var(--orange)'},
+            {l:'Medium',v:data?.summary?.severity_counts?.MEDIUM,c:'var(--yellow)'},
+            {l:'Low',v:data?.summary?.severity_counts?.LOW},
+            {l:'Total Findings',v:data?.summary?.total_findings,a:true}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:20px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Source Breakdown -->
+      <div *ngIf="data?.summary?.source_counts" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <div *ngFor="let src of sourceEntries()" style="background:var(--surface);padding:14px 16px">
+          <div style="font-size:20px;font-weight:700;font-family:var(--font-mono)">{{src[1]}}</div>
+          <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{src[0]}}</div>
+        </div>
+      </div>
+
+      <!-- Top 5 Risks -->
+      <div *ngIf="data?.summary?.top_risks?.length" class="card" style="overflow:hidden">
+        <div class="section-title" style="padding:14px 18px 4px">Top Risk Findings</div>
+        <div *ngFor="let f of data?.summary?.top_risks; let last=last"
+          style="display:flex;align-items:flex-start;gap:12px;padding:10px 14px"
+          [style.border-bottom]="!last?'1px solid var(--border)':'none'">
+          <span [class]="badgeClass(f.severity)" style="flex-shrink:0;margin-top:2px">{{f.severity}}</span>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:12px;font-weight:500;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{f.title}}</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px">{{f.source}} · {{f.region||'—'}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- All Findings -->
+    <div *ngIf="activeTab==='findings'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">All Findings ({{data?.unified_findings?.length||0}})</h2>
+      <div *ngIf="!data?.unified_findings?.length" class="empty">No findings.</div>
+      <div *ngIf="data?.unified_findings?.length" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+        <div style="overflow-x:auto;max-height:calc(100vh - 280px);overflow-y:auto">
+          <table>
+            <thead><tr><th>Severity</th><th>Title</th><th>Source</th><th>Resource</th><th>Region</th></tr></thead>
+            <tbody>
+              <tr *ngFor="let f of data?.unified_findings?.slice(0,200)">
+                <td><span [class]="badgeClass(f.severity)">{{f.severity}}</span></td>
+                <td style="max-width:300px">{{f.title}}</td>
+                <td><span [class]="sourceClass(f.source)">{{f.source}}</span></td>
+                <td><span class="mono" style="font-size:10px">{{f.resource?.slice(-30)||f.resource_id?.slice(-30)||'—'}}</span></td>
+                <td><span class="mono" style="font-size:11px">{{f.region||'—'}}</span></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Inspector -->
+    <div *ngIf="activeTab==='inspector'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">Inspector</h2>
+      <div *ngIf="!data?.inspector" class="empty">No Inspector data.</div>
+      <ng-container *ngIf="data?.inspector">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Critical',v:data?.inspector?.severity_counts?.CRITICAL,c:'var(--red)'},
+            {l:'High',v:data?.inspector?.severity_counts?.HIGH,c:'var(--orange)'},
+            {l:'Medium',v:data?.inspector?.severity_counts?.MEDIUM,c:'var(--yellow)'},
+            {l:'Total',v:data?.inspector?.total_findings,a:true}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div *ngIf="data?.inspector?.findings?.length" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div style="overflow-x:auto;max-height:calc(100vh - 340px);overflow-y:auto">
+            <table>
+              <thead><tr><th>Severity</th><th>Title</th><th>Score</th><th>Resource</th><th>Region</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let f of data?.inspector?.findings?.slice(0,100)">
+                  <td><span [class]="badgeClass(f.severity)">{{f.severity}}</span></td>
+                  <td style="max-width:300px">{{f.title}}</td>
+                  <td><span class="mono" style="font-size:11px">{{f.score||'—'}}</span></td>
+                  <td><span class="mono" style="font-size:10px">{{f.resource_id?.slice(-30)||'—'}}</span></td>
+                  <td><span class="mono" style="font-size:11px">{{f.region||'—'}}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div *ngIf="!data?.inspector?.findings?.length" class="empty">No Inspector findings.</div>
+      </ng-container>
+    </div>
+
+    <!-- GuardDuty -->
+    <div *ngIf="activeTab==='guardduty'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">GuardDuty</h2>
+      <div *ngIf="!data?.guardduty" class="empty">No GuardDuty data.</div>
+      <ng-container *ngIf="data?.guardduty">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'High Findings',v:data?.guardduty?.high_findings,c:'var(--red)'},
+            {l:'Medium',v:data?.guardduty?.medium_findings,c:'var(--orange)'},
+            {l:'Total',v:data?.guardduty?.total_findings,a:true},
+            {l:'Detectors',v:data?.guardduty?.detectors?.length}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div *ngIf="data?.guardduty?.findings?.length" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div style="overflow-x:auto;max-height:calc(100vh - 340px);overflow-y:auto">
+            <table>
+              <thead><tr><th>Severity</th><th>Title</th><th>Type</th><th>Region</th><th>Created</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let f of data?.guardduty?.findings?.slice(0,100)">
+                  <td><span [class]="badgeClass(f.severity)">{{f.severity}}</span></td>
+                  <td style="max-width:280px">{{f.title}}</td>
+                  <td style="font-size:11px;color:var(--text-2)">{{f.type||'—'}}</td>
+                  <td><span class="mono" style="font-size:11px">{{f.region||'—'}}</span></td>
+                  <td style="font-size:11px;color:var(--text-3)">{{f.created?.slice(0,10)||'—'}}</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div *ngIf="!data?.guardduty?.findings?.length" class="empty">No GuardDuty findings.</div>
+      </ng-container>
+    </div>
+
+    <!-- Macie -->
+    <div *ngIf="activeTab==='macie'" class="fade-in" style="display:flex;flex-direction:column;gap:16px">
+      <h2 style="font-size:16px;font-weight:700">Macie</h2>
+      <div *ngIf="!data?.macie" class="empty">No Macie data.</div>
+      <ng-container *ngIf="data?.macie">
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div *ngFor="let s of [
+            {l:'Critical',v:data?.macie?.severity_counts?.HIGH,c:'var(--red)'},
+            {l:'Medium',v:data?.macie?.severity_counts?.MEDIUM,c:'var(--orange)'},
+            {l:'Total',v:data?.macie?.total_findings,a:true},
+            {l:'Enabled',v:data?.macie?.enabled?'Yes':'No'}
+          ]" style="background:var(--surface);padding:14px 16px">
+            <div [style.color]="s.c||(s.a?'var(--accent)':'')" style="font-size:18px;font-weight:700;font-family:var(--font-mono)">{{s.v??'—'}}</div>
+            <div style="font-size:11px;color:var(--text-2);margin-top:3px">{{s.l}}</div>
+          </div>
+        </div>
+        <div *ngIf="data?.macie?.findings?.length" style="border:1px solid var(--border);border-radius:var(--radius);overflow:hidden">
+          <div style="overflow-x:auto;max-height:calc(100vh - 340px);overflow-y:auto">
+            <table>
+              <thead><tr><th>Severity</th><th>Title</th><th>Resource</th><th>Region</th></tr></thead>
+              <tbody>
+                <tr *ngFor="let f of data?.macie?.findings?.slice(0,100)">
+                  <td><span [class]="badgeClass(f.severity)">{{f.severity}}</span></td>
+                  <td style="max-width:300px">{{f.title||f.type}}</td>
+                  <td><span class="mono" style="font-size:10px">{{f.resource?.slice(-40)||'—'}}</span></td>
+                  <td><span class="mono" style="font-size:11px">{{f.region||'—'}}</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div *ngIf="!data?.macie?.findings?.length" class="empty">No Macie findings.</div>
+      </ng-container>
+    </div>
+
+  </main>
+</div>

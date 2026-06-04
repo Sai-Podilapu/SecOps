@@ -1,0 +1,114 @@
+<div class="fade-in" style="padding:20px 24px;max-width:1600px;margin:0 auto;width:100%">
+  <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px">
+    <div>
+      <h2 style="font-size:18px;font-weight:700;margin-bottom:4px">Cloud Security Posture Management</h2>
+      <div style="font-size:12px;color:var(--text-3)">Account: <span class="mono">{{data?.identity?.account_id||'—'}}</span>
+        <span *ngIf="meta"> · {{meta.duration}}s · {{meta.region}}</span>
+      </div>
+    </div>
+    <div style="display:flex;flex-direction:column;align-items:center;gap:6px">
+      <div style="width:90px;height:90px;position:relative">
+        <svg viewBox="0 0 100 100" style="transform:rotate(-90deg)">
+          <circle cx="50" cy="50" r="42" fill="none" stroke="var(--surface-3)" stroke-width="8"/>
+          <circle cx="50" cy="50" r="42" fill="none" [attr.stroke]="overallColor" stroke-width="8"
+            [attr.stroke-dasharray]="dashArray+' '+circumference" stroke-linecap="round"/>
+        </svg>
+        <div style="position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center">
+          <span [style.color]="overallColor" style="font-size:20px;font-weight:800;font-family:var(--font-mono)">{{data?.overall_score||0}}</span>
+          <span style="font-size:8px;color:var(--text-3);text-transform:uppercase">Score</span>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--text-3)">{{data?.total_passed||0}}/{{data?.total_checks||0}} passed</div>
+    </div>
+  </div>
+
+  <!-- Tab buttons -->
+  <div style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap">
+    <button *ngFor="let t of tabs" (click)="activeTab=t.id"
+      [style.border-color]="activeTab===t.id?(t.score!=null?scoreColor(t.score):'#0ea5e9'):'var(--border)'"
+      [style.color]="activeTab===t.id?(t.score!=null?scoreColor(t.score):'#0ea5e9'):'var(--text-2)'"
+      [style.background]="activeTab===t.id?'var(--surface-2)':'transparent'"
+      [style.font-weight]="activeTab===t.id?'600':'400'"
+      style="padding:6px 14px;border-radius:var(--radius);border:1px solid;font-size:12px;cursor:pointer">
+      {{t.label}}<span *ngIf="t.score!=null" class="mono" style="margin-left:6px;font-size:10px"> {{t.score}}%</span>
+    </button>
+  </div>
+
+  <!-- Overview grid -->
+  <div *ngIf="activeTab==='overview'" style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+    <div *ngFor="let k of modOrder">
+      <div *ngIf="data?.modules?.[k]" class="card" style="margin-bottom:8px">
+        <div (click)="toggleExpand(k)" style="padding:14px 18px;display:flex;align-items:center;gap:14px;cursor:pointer">
+          <div [style.border]="'2px solid '+scoreColor(data.modules[k].score)"
+            [style.background]="scoreColor(data.modules[k].score)+'12'"
+            style="width:48px;height:48px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:20px">
+            {{modIcons[k]||'◉'}}
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600;margin-bottom:4px">{{data.modules[k].label}}</div>
+            <div style="display:flex;align-items:center;gap:8px">
+              <div style="flex:1;height:4px;background:var(--surface-3);border-radius:2px;overflow:hidden">
+                <div [style.width]="data.modules[k].score+'%'" [style.background]="scoreColor(data.modules[k].score)" style="height:100%;border-radius:2px;transition:width 0.5s"></div>
+              </div>
+              <span [style.color]="scoreColor(data.modules[k].score)" class="mono" style="font-size:11px;min-width:36px;text-align:right">{{data.modules[k].score}}%</span>
+            </div>
+            <div style="display:flex;gap:12px;margin-top:4px;font-size:11px;color:var(--text-3)">
+              <span style="color:var(--green)">✓ {{data.modules[k].passed||0}} passed</span>
+              <span *ngIf="(data.modules[k].total_checks||0)-(data.modules[k].passed||0)>0" style="color:var(--red)">✗ {{(data.modules[k].total_checks||0)-(data.modules[k].passed||0)}} failed</span>
+            </div>
+          </div>
+          <span style="color:var(--text-3);font-size:12px">{{expanded[k]?'▲':'▼'}}</span>
+        </div>
+        <div *ngIf="expanded[k] && data.modules[k].checks?.length" style="border-top:1px solid var(--border);padding:12px 18px">
+          <div *ngFor="let c of data.modules[k].checks; let i=index; let last=last"
+            style="display:flex;align-items:flex-start;gap:10px;padding:7px 0"
+            [style.border-bottom]="!last?'1px solid var(--border)':'none'">
+            <span [style.color]="c.status==='PASS'?'var(--green)':'var(--red)'" style="font-size:14px;flex-shrink:0;margin-top:1px">{{c.status==='PASS'?'✓':'✗'}}</span>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:12px;font-weight:500">
+                <span *ngIf="c.cis_id" class="mono" style="color:var(--text-3);margin-right:6px;font-size:10px">[{{c.cis_id}}]</span>{{c.name}}
+              </div>
+              <div *ngIf="c.detail" style="font-size:11px;color:var(--text-3);margin-top:2px">{{c.detail}}</div>
+            </div>
+            <span class="badge badge-sm" [ngClass]="badgeClass(c.severity)">{{c.severity}}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Failures -->
+  <div *ngIf="activeTab==='failures'" class="card" style="overflow:hidden">
+    <div *ngIf="!data?.top_failures?.length" class="empty">No failures — excellent posture!</div>
+    <div *ngFor="let f of data?.top_failures; let i=index; let last=last"
+      style="padding:10px 14px;display:flex;align-items:flex-start;gap:10px"
+      [style.border-bottom]="!last?'1px solid var(--border)':'none'">
+      <span style="font-size:13px;color:var(--red);flex-shrink:0">✗</span>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:12px;font-weight:500;margin-bottom:2px">
+          <span *ngIf="f.cis_id" class="mono" style="color:var(--text-3);margin-right:6px;font-size:10px">[CIS {{f.cis_id}}]</span>{{f.name}}
+        </div>
+        <div *ngIf="f.detail" style="font-size:11px;color:var(--text-3);margin-bottom:2px">{{f.detail}}</div>
+        <div style="font-size:10px;color:var(--text-3);opacity:0.7">{{f.module}}</div>
+      </div>
+      <span class="badge badge-sm" [ngClass]="badgeClass(f.severity)">{{f.severity}}</span>
+    </div>
+  </div>
+
+  <!-- Individual module tab -->
+  <ng-container *ngFor="let k of modOrder">
+    <div *ngIf="activeTab===k && data?.modules?.[k]" class="card" style="overflow:hidden">
+      <div *ngFor="let c of data.modules[k].checks; let i=index; let last=last"
+        style="display:flex;align-items:flex-start;gap:10px;padding:10px 14px"
+        [style.border-bottom]="!last?'1px solid var(--border)':'none'"
+        [style.background]="i%2===0?'var(--surface)':'var(--surface-2)'">
+        <span [style.color]="c.status==='PASS'?'var(--green)':'var(--red)'" style="font-size:14px;flex-shrink:0;margin-top:1px">{{c.status==='PASS'?'✓':'✗'}}</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:12px;font-weight:500"><span *ngIf="c.cis_id" class="mono" style="color:var(--text-3);margin-right:6px;font-size:10px">[{{c.cis_id}}]</span>{{c.name}}</div>
+          <div *ngIf="c.detail" style="font-size:11px;color:var(--text-3);margin-top:2px">{{c.detail}}</div>
+        </div>
+        <span class="badge badge-sm" [ngClass]="badgeClass(c.severity)">{{c.severity}}</span>
+      </div>
+    </div>
+  </ng-container>
+</div>
